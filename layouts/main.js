@@ -12,8 +12,8 @@ const Main = (props) => {
                 <title> {props.meta.title}</title>
                 <meta name="description" content={props.meta.description} />
                 <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+                <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" />
             </Head>
-            <div>Test script</div>
             <Nav />
             {props.children}
             <Footer />

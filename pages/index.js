@@ -1,113 +1,56 @@
+import React, { useState } from 'react';
+import fetch from 'isomorphic-unfetch';
+import Main from '../layouts/main';
+import SearchBar from '../comps/SearchBar';
+import MovieList from '../comps/MovieList';
 
-import React from 'react';
-import fetch from 'isomorphic-unfetch'
-import Head from 'next/head'
+const API_KEY = 'APIKEY'; // Should be in .env in a real app
 
-class Index extends React.Component  {
-    constructor(props) {
-        super(props);
-        this.state = {
-            input: '',
-            data: [],
-            error: ''
-        }
-    }
+const Index = () => {
+    const [input, setInput] = useState('');
+    const [data, setData] = useState([]);
+    const [error, setError] = useState('');
 
-
-    handleClick = () =>{
-        fetch(`http://www.omdbapi.com/?apikey=APIKEY&s=${this.state.input}`)
-        .then((results) => {
-            return results.json();
-        })
-        .then((data) => {
-            this.setState({
-                data: Array.from(data['Search']),
-                error: ''
-            })
-        })
-        .catch((err)=>{
-            this.setState({
-                error: 'No Movie found'
-            })
-        })
-    }
-
-    handleChange = (e) =>{
-        this.setState({
-            input: e.target.value       
-        })
-    }
-    render () {
-        return (
-        <div>
-            <Head>
-                <title>My page title</title>
-                <meta
-                name="viewport"
-                content="initial-scale=1.0, width=device-width"
-                key="viewport"
-                />
-                <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" />
-            </Head>
-            <div className="jumbotron jumbotron-fluid">
-                <div className="container">
-                    <h1 className="display-4">Movie Search powered by Next JS</h1>
-                    <p className="lead">This is sample test app build and it uses Online movie database API</p>
-                    <style jsx>
-                       {
-                           `
-                            input {
-                                display: inline-block;
-                                width: 500px;
-                            }
-                            @media only screen and (max-width: 600px) {
-                                input {
-                                    display: block;
-                                    width: 100%;
-                                }
-                                button {
-                                    display: block;
-                                    margin: 0 auto;
-                                    margin-top: 15px;
-                                }
-                            }
-                           `
-                       }
-
-                    </style>
-                    <input className="form-control mr-sm-2" type="search" placeholder="Search movie" value={this.state.input} onChange={this.handleChange} />
-                    <button className="btn btn-outline-primary" type="submit" onClick={this.handleClick} >Search</button>
-                </div>
-            </div>    
-            <div className="container">
-            <style jsx>{`
-                .img-responsive {
-                max-height: 400px;
+    const handleClick = () => {
+        fetch(`http://www.omdbapi.com/?apikey=${API_KEY}&s=${input}`)
+            .then((results) => results.json())
+            .then((data) => {
+                if (data.Response === "True") {
+                    setData(Array.from(data['Search']));
+                    setError('');
+                } else {
+                    setError(data.Error || 'No Movie found');
+                    setData([]);
                 }
-            `}</style>
-                {
-                    this.state.error.length? <div className="error">No Movie found</div>: 
-                    <div className="row">
-                        {
-                            this.state.data.map((movie, i)=>{
-                                if (movie['Poster'] !="N/A") {
-                                    return (
-                                        <div className="col-md-3" key={i}>
-                                            <img className="img-responsive" src={movie['Poster']}/>
-                                            <h2><a href={`/about?id=${movie['imdbID']}`}>{movie['Title']}</a></h2>
-                                            <p>Year: {movie['Year']}</p>
-                                        </div>
-                                    )
-                                } else return null;
-                            })
-                        }
-                    </div>
-                }
-            </div>
-        </div>
-        )
-    }
-}
+            })
+            .catch((err) => {
+                setError('Something went wrong. Please try again.');
+                setData([]);
+            });
+    };
 
+    const handleChange = (e) => {
+        setInput(e.target.value);
+    };
 
-export default Index
+    const meta = {
+        title: 'Movie Search powered by Next JS',
+        description: 'This is a sample test app built with Next JS and OMDB API'
+    };
+
+    return (
+        <Main meta={meta}>
+            <SearchBar 
+                input={input} 
+                onChange={handleChange} 
+                onClick={handleClick} 
+            />
+            <MovieList 
+                data={data} 
+                error={error} 
+            />
+        </Main>
+    );
+};
+
+export default Index;
